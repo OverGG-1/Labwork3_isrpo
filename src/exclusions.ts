@@ -1,16 +1,15 @@
 /**
- * Проверка правил исключения файлов и каталогов из анализа.
+ * Checks file and directory exclusion rules.
  *
- * Поддерживает простые glob-шаблоны (*, ** и ?) и кэширует скомпилированные
- * регулярные выражения, чтобы не создавать их повторно при каждом файле.
+ * Supports basic glob patterns (*, ** and ?) and caches compiled
+ * regular expressions to avoid recompiling them for every file.
  */
 
 import * as vscode from 'vscode';
 
 const cache = new Map<string, RegExp>();
 
-/** Converts a simple glob (supports "*", "**" and "?") into a case-insensitive regular expression. */
-/** Преобразует поддерживаемый glob-шаблон в регэксп и сохраняет результат в кэше. */
+/** Converts a supported glob pattern into a case-insensitive regular expression and caches the result. */
 function globToRegExp(glob: string): RegExp {
   const cached = cache.get(glob);
   if (cached) {
@@ -48,7 +47,7 @@ function globToRegExp(glob: string): RegExp {
  * file pattern (tasktracker.excludedFiles).
  * Files outside the workspace are never excluded by this check.
  */
-/** Возвращает true, если файл должен быть исключён из сканирования согласно настройкам пользователя. */
+/** Returns true when a file must be excluded from scanning according to user settings. */
 export function isExcluded(uri: vscode.Uri): boolean {
   if (!vscode.workspace.getWorkspaceFolder(uri)) {
     return false;

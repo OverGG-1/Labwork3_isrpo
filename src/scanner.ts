@@ -1,9 +1,9 @@
 /**
- * Модуль обнаружения задач в содержимом файлов.
+ * Module responsible for detecting tasks in file contents.
  *
- * Выбирает правила распознавания в зависимости от расширения файла,
- * разбирает текст построчно и возвращает нормализованные объекты Task.
- * Также отвечает за безопасное чтение байтов и декодирование текста.
+ * Selects matching rules based on the file extension,
+ * parses the text line by line and returns normalized Task objects.
+ * It also handles safe byte reading and text decoding.
  */
 
 import * as vscode from 'vscode';
@@ -54,11 +54,11 @@ function patternFor(uri: vscode.Uri): RegExp {
 }
 
 /**
- * Разбирает текст и возвращает задачи, распознанные в каждой строке.
- * @param text Полное текстовое содержимое файла.
- * @param uri URI анализируемого файла.
- * @param relativePath Относительный путь для отображения в интерфейсе.
- * @returns Список найденных задач с типом, текстом и номером строки.
+ * Parses text and returns tasks detected on each line.
+ * @param text Complete text content of the file.
+ * @param uri URI of the file being analyzed.
+ * @param relativePath Workspace-relative path displayed in the UI.
+ * @returns Detected tasks with their type, text and line number.
  */
 export function parseText(text: string, uri: vscode.Uri, relativePath: string): Task[] {
   const re = patternFor(uri);
@@ -85,7 +85,7 @@ export function parseText(text: string, uri: vscode.Uri, relativePath: string): 
   return tasks;
 }
 
-/** Результат чтения и анализа файла; ошибки и причины пропуска передаются отдельно. */
+/** Result of reading and analyzing a file; errors and skip reasons are reported separately. */
 export interface ScanResult {
   tasks: Task[];
   error?: string;
@@ -108,11 +108,11 @@ function decode(bytes: Uint8Array): string | undefined {
 
 /** Reads a file (or takes the text of an open document) and looks for tasks in it. */
 export /**
- * Читает файл и передаёт его содержимое парсеру.
- * Для открытого документа использует актуальный текст редактора; для остальных
- * файлов проверяет размер и бинарность перед декодированием.
- * @param uri URI файла для анализа.
- * @param maxFileSizeKb Максимально допустимый размер файла в килобайтах.
+ * Reads a file and passes its contents to the parser.
+ * Uses the current editor text for open documents; for other
+ * files, checks the size and binary status before decoding.
+ * @param uri URI of the file to analyze.
+ * @param maxFileSizeKb Maximum allowed file size in kilobytes.
  */
 async function scanFile(uri: vscode.Uri, maxFileSizeKb: number): Promise<ScanResult> {
   const relativePath = vscode.workspace.asRelativePath(uri, true);

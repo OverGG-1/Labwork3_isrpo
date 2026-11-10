@@ -1,9 +1,9 @@
 /**
- * Подсветка задач в открытых редакторах.
+ * Highlights tasks in open editor documents.
  *
- * Для строк с пометками устанавливает значок в gutter,
- * фоновую подсветку и маркер в overview ruler. Анализирует только видимые
- * документы и ограничивает размер документа по числу строк.
+ * Adds a gutter icon,
+ * a line background and an overview ruler marker for TODO/FIXME/BUG/HACK entries. Only visible
+ * documents are analyzed, and document size is limited by line count.
  */
 
 import * as vscode from 'vscode';
@@ -18,7 +18,7 @@ const MAX_LINES = 20000;
  * a soft background on the whole line and a mark in the overview ruler.
  * (The VS Code API does not allow recolouring the line number text itself.)
  */
-/** Управляет наборами декораций редактора для всех поддерживаемых типов задач. */
+/** Manages editor decorations for every supported task type. */
 export class EditorHighlighter implements vscode.Disposable {
   private readonly types = new Map<TaskType, vscode.TextEditorDecorationType>();
   private readonly disposables: vscode.Disposable[] = [];
@@ -49,14 +49,14 @@ export class EditorHighlighter implements vscode.Disposable {
     this.refreshAll();
   }
 
-  /** Пересчитывает подсветку во всех видимых редакторах. */
+  /** Recalculates highlighting in all visible editors. */
 refreshAll(): void {
     for (const editor of vscode.window.visibleTextEditors) {
       this.update(editor);
     }
   }
 
-  /** Откладывает обновление подсветки, объединяя частые события ввода в один пересчёт. */
+  /** Debounces frequent document changes and performs a single highlighting update. */
 private schedule(doc: vscode.TextDocument): void {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
@@ -68,7 +68,7 @@ private schedule(doc: vscode.TextDocument): void {
     }, 200);
   }
 
-  /** Анализирует документ редактора и устанавливает диапазоны подсветки по категориям. */
+  /** Analyzes an editor document and assigns decoration ranges by task category. */
 private update(editor: vscode.TextEditor): void {
     const enabled = vscode.workspace.getConfiguration('tasktracker').get<boolean>('highlightInEditor', true);
     const doc = editor.document;
@@ -86,7 +86,7 @@ private update(editor: vscode.TextEditor): void {
     }
   }
 
-  /** Останавливает таймер и освобождает обработчики событий и типы декораций. */
+  /** Stops the timer and disposes event listeners and decoration types. */
 dispose(): void {
     clearTimeout(this.timer);
     this.disposables.forEach((d) => d.dispose());

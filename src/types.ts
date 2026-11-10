@@ -1,32 +1,32 @@
 /**
- * Общие типы данных TaskTracker.
+ * Shared TaskTracker data types.
  *
- * Модуль задаёт допустимые категории задач, порядок их приоритета,
- * режимы сортировки и структуру записи, передаваемой между компонентами.
+ * Defines supported task categories, their priority order,
+ * sorting modes and the task record shared between components.
  */
 
 import * as vscode from 'vscode';
 
-/** Категория найденной задачи. */
+/** Category of a detected task. */
 export type TaskType = 'TODO' | 'FIXME' | 'BUG' | 'HACK';
 
-/** Полный перечень категорий, доступных в интерфейсе фильтрации. */
+/** Complete list of categories available in the filtering UI. */
 export const ALL_TYPES: TaskType[] = ['BUG', 'FIXME', 'HACK', 'TODO'];
 
 /** Type order used when sorting by type (most urgent first). */
-/** Числовой приоритет категорий: меньшее значение означает более высокий приоритет. */
+/** Numeric category priority; a lower value means a higher priority. */
 export const TYPE_ORDER: Record<TaskType, number> = { BUG: 0, FIXME: 1, HACK: 2, TODO: 3 };
 
-/** Поле, по которому пользователь может упорядочить список задач. */
+/** Field used to sort the task list. */
 export type SortMode = 'file' | 'type' | 'line';
 
 /**
- * Найденная в проекте задача.
- * @property type Тип маркера TODO/FIXME/BUG/HACK.
- * @property text Текст после маркера.
- * @property uri URI исходного файла.
- * @property relativePath Путь относительно рабочего пространства.
- * @property line Номер строки, начиная с единицы.
+ * A task detected in the project.
+ * @property type TODO/FIXME/BUG/HACK marker type.
+ * @property text Text following the marker.
+ * @property uri URI of the source file.
+ * @property relativePath Workspace-relative file path.
+ * @property line One-based line number.
  */
 export interface Task {
   type: TaskType;

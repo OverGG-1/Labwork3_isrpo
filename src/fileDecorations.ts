@@ -1,8 +1,8 @@
 /**
- * Декоратор файлов для представления Explorer.
+ * File decorations for the Explorer view.
  *
- * Показывает количество обнаруженных задач и окрашивает файл по наиболее
- * приоритетному типу задачи. Обновляет декорации при изменении хранилища.
+ * Displays the number of detected tasks and colours the file according to its most
+ * urgent task type. Decorations are refreshed when the store changes.
  */
 
 import * as vscode from 'vscode';
@@ -17,7 +17,7 @@ export const COLOR_IDS: Record<TaskType, string> = {
 };
 
 /** Adds a badge and a colour to files that contain tasks in the Explorer. */
-/** Реализует FileDecorationProvider и отражает наличие задач на значках файлов. */
+/** Implements FileDecorationProvider and displays task information on file icons. */
 export class TaskFileDecorationProvider implements vscode.FileDecorationProvider, vscode.Disposable {
   private readonly emitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
   readonly onDidChangeFileDecorations = this.emitter.event;
@@ -27,12 +27,12 @@ export class TaskFileDecorationProvider implements vscode.FileDecorationProvider
     this.sub = store.onDidChange((uris) => this.emitter.fire(uris));
   }
 
-  /** Просит VS Code повторно вычислить декорации всех файлов. */
+  /** Asks VS Code to recalculate decorations for all files. */
 refreshAll(): void {
     this.emitter.fire(undefined);
   }
 
-  /** Формирует бейдж, подсказку и цвет для файла на основе его задач. */
+  /** Builds a badge, tooltip and colour for a file based on its tasks. */
 provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     const enabled = vscode.workspace.getConfiguration('tasktracker').get<boolean>('decorateExplorer', true);
     if (!enabled) {
@@ -61,7 +61,7 @@ provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     );
   }
 
-  /** Отключает подписку на хранилище и освобождает EventEmitter. */
+  /** Disposes the store subscription and the EventEmitter. */
 dispose(): void {
     this.sub.dispose();
     this.emitter.dispose();
