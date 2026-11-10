@@ -1,3 +1,11 @@
+/**
+ * Точка входа расширения TaskTracker.
+ *
+ * Регистрирует представление, команды и обработчики событий VS Code,
+ * связывает хранилище задач с интерфейсом и запускает первоначальное
+ * сканирование рабочего пространства.
+ */
+
 import * as vscode from 'vscode';
 import { TaskStore } from './store';
 import { TaskProvider } from './taskProvider';
@@ -5,6 +13,10 @@ import { ALL_TYPES, SortMode, Task, TaskType } from './types';
 import { TaskFileDecorationProvider } from './fileDecorations';
 import { EditorHighlighter } from './editorHighlight';
 
+/**
+ * Активирует расширение и регистрирует его ресурсы в контексте VS Code.
+ * @param context Контекст расширения, управляющий временем жизни подписок.
+ */
 export function activate(context: vscode.ExtensionContext): void {
   const log = vscode.window.createOutputChannel('TaskTracker');
   const store = new TaskStore(log);
@@ -126,4 +138,5 @@ export function activate(context: vscode.ExtensionContext): void {
   void store.scanWorkspace();
 }
 
+/** Точка деактивации; ресурсы освобождаются через context.subscriptions. */
 export function deactivate(): void {}

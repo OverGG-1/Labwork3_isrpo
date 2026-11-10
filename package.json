@@ -7,6 +7,10 @@
   "engines": {
     "vscode": "^1.80.0"
   },
+  "repository": {
+  "type": "git",
+  "url": "https://github.com/OverGG-1/Labwork3_isrpo.git"
+  },
   "categories": [
     "Other"
   ],

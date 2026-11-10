@@ -1,8 +1,17 @@
+/**
+ * Хранилище задач и координатор сканирования рабочего пространства.
+ *
+ * TaskStore хранит задачи с группировкой по URI файла, выполняет полное
+ * сканирование проекта и точечное обновление изменённого файла. Изменения
+ * публикуются через событие onDidChange для обновления интерфейса.
+ */
+
 import * as vscode from 'vscode';
 import { isExcluded } from './exclusions';
 import { scanFile } from './scanner';
 import { Task } from './types';
 
+/** Управляет коллекцией задач и обновляет её при сканировании файлов. */
 export class TaskStore implements vscode.Disposable {
   private readonly byFile = new Map<string, Task[]>();
   /** Fires with the URIs of the files whose task lists have changed. */
@@ -11,7 +20,8 @@ export class TaskStore implements vscode.Disposable {
 
   constructor(private readonly log: vscode.OutputChannel) {}
 
-  get all(): Task[] {
+  /** Возвращает новый плоский массив всех задач из файлового хранилища. */
+get all(): Task[] {
     const result: Task[] = [];
     for (const tasks of this.byFile.values()) {
       result.push(...tasks);
@@ -19,7 +29,8 @@ export class TaskStore implements vscode.Disposable {
     return result;
   }
 
-  tasksFor(uri: vscode.Uri): Task[] {
+  /** Возвращает задачи конкретного файла; если файл не содержит задач, возвращает пустой массив. */
+tasksFor(uri: vscode.Uri): Task[] {
     return this.byFile.get(uri.toString()) ?? [];
   }
 
@@ -32,14 +43,16 @@ export class TaskStore implements vscode.Disposable {
   }
 
   /** The file belongs to the workspace and is not excluded by folder or file patterns. */
-  isScannable(uri: vscode.Uri): boolean {
+  /** Проверяет, относится ли URI к локальному файлу рабочего пространства и не исключён ли он настройками. */
+isScannable(uri: vscode.Uri): boolean {
     if (uri.scheme !== 'file' || !vscode.workspace.getWorkspaceFolder(uri)) {
       return false;
     }
     return !isExcluded(uri);
   }
 
-  async scanWorkspace(): Promise<void> {
+  /** Полностью пересканирует рабочее пространство пакетами, чтобы ограничить число одновременных операций чтения. */
+async scanWorkspace(): Promise<void> {
     const previous = [...this.byFile.keys()];
 
     if (!vscode.workspace.workspaceFolders) {
@@ -88,7 +101,8 @@ export class TaskStore implements vscode.Disposable {
     );
   }
 
-  async updateFile(uri: vscode.Uri): Promise<void> {
+  /** Повторно анализирует один изменившийся файл и обновляет соответствующую запись хранилища. */
+async updateFile(uri: vscode.Uri): Promise<void> {
     if (!this.isScannable(uri)) {
       return;
     }
@@ -107,13 +121,15 @@ export class TaskStore implements vscode.Disposable {
     }
   }
 
-  removeFile(uri: vscode.Uri): void {
+  /** Удаляет задачи файла из хранилища и уведомляет подписчиков, если запись существовала. */
+removeFile(uri: vscode.Uri): void {
     if (this.byFile.delete(uri.toString())) {
       this.emitter.fire([uri]);
     }
   }
 
-  dispose(): void {
+  /** Освобождает EventEmitter, принадлежащий хранилищу. */
+dispose(): void {
     this.emitter.dispose();
   }
 }

@@ -1,3 +1,11 @@
+/**
+ * Модуль обнаружения задач в содержимом файлов.
+ *
+ * Выбирает правила распознавания в зависимости от расширения файла,
+ * разбирает текст построчно и возвращает нормализованные объекты Task.
+ * Также отвечает за безопасное чтение байтов и декодирование текста.
+ */
+
 import * as vscode from 'vscode';
 import { Task, TaskType } from './types';
 
@@ -45,6 +53,13 @@ function patternFor(uri: vscode.Uri): RegExp {
   return GENERIC_RE;
 }
 
+/**
+ * Разбирает текст и возвращает задачи, распознанные в каждой строке.
+ * @param text Полное текстовое содержимое файла.
+ * @param uri URI анализируемого файла.
+ * @param relativePath Относительный путь для отображения в интерфейсе.
+ * @returns Список найденных задач с типом, текстом и номером строки.
+ */
 export function parseText(text: string, uri: vscode.Uri, relativePath: string): Task[] {
   const re = patternFor(uri);
   const tasks: Task[] = [];
@@ -70,6 +85,7 @@ export function parseText(text: string, uri: vscode.Uri, relativePath: string): 
   return tasks;
 }
 
+/** Результат чтения и анализа файла; ошибки и причины пропуска передаются отдельно. */
 export interface ScanResult {
   tasks: Task[];
   error?: string;
@@ -91,7 +107,14 @@ function decode(bytes: Uint8Array): string | undefined {
 }
 
 /** Reads a file (or takes the text of an open document) and looks for tasks in it. */
-export async function scanFile(uri: vscode.Uri, maxFileSizeKb: number): Promise<ScanResult> {
+export /**
+ * Читает файл и передаёт его содержимое парсеру.
+ * Для открытого документа использует актуальный текст редактора; для остальных
+ * файлов проверяет размер и бинарность перед декодированием.
+ * @param uri URI файла для анализа.
+ * @param maxFileSizeKb Максимально допустимый размер файла в килобайтах.
+ */
+async function scanFile(uri: vscode.Uri, maxFileSizeKb: number): Promise<ScanResult> {
   const relativePath = vscode.workspace.asRelativePath(uri, true);
   try {
     const open = vscode.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());

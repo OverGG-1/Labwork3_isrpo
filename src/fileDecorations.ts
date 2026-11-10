@@ -1,3 +1,10 @@
+/**
+ * Декоратор файлов для представления Explorer.
+ *
+ * Показывает количество обнаруженных задач и окрашивает файл по наиболее
+ * приоритетному типу задачи. Обновляет декорации при изменении хранилища.
+ */
+
 import * as vscode from 'vscode';
 import { TaskStore } from './store';
 import { TaskType, TYPE_ORDER } from './types';
@@ -10,6 +17,7 @@ export const COLOR_IDS: Record<TaskType, string> = {
 };
 
 /** Adds a badge and a colour to files that contain tasks in the Explorer. */
+/** Реализует FileDecorationProvider и отражает наличие задач на значках файлов. */
 export class TaskFileDecorationProvider implements vscode.FileDecorationProvider, vscode.Disposable {
   private readonly emitter = new vscode.EventEmitter<vscode.Uri | vscode.Uri[] | undefined>();
   readonly onDidChangeFileDecorations = this.emitter.event;
@@ -19,11 +27,13 @@ export class TaskFileDecorationProvider implements vscode.FileDecorationProvider
     this.sub = store.onDidChange((uris) => this.emitter.fire(uris));
   }
 
-  refreshAll(): void {
+  /** Просит VS Code повторно вычислить декорации всех файлов. */
+refreshAll(): void {
     this.emitter.fire(undefined);
   }
 
-  provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
+  /** Формирует бейдж, подсказку и цвет для файла на основе его задач. */
+provideFileDecoration(uri: vscode.Uri): vscode.FileDecoration | undefined {
     const enabled = vscode.workspace.getConfiguration('tasktracker').get<boolean>('decorateExplorer', true);
     if (!enabled) {
       return undefined;
@@ -51,7 +61,8 @@ export class TaskFileDecorationProvider implements vscode.FileDecorationProvider
     );
   }
 
-  dispose(): void {
+  /** Отключает подписку на хранилище и освобождает EventEmitter. */
+dispose(): void {
     this.sub.dispose();
     this.emitter.dispose();
   }

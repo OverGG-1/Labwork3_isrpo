@@ -1,3 +1,11 @@
+/**
+ * Подсветка задач в открытых редакторах.
+ *
+ * Для строк с пометками устанавливает значок в gutter,
+ * фоновую подсветку и маркер в overview ruler. Анализирует только видимые
+ * документы и ограничивает размер документа по числу строк.
+ */
+
 import * as vscode from 'vscode';
 import { isExcluded } from './exclusions';
 import { parseText } from './scanner';
@@ -10,6 +18,7 @@ const MAX_LINES = 20000;
  * a soft background on the whole line and a mark in the overview ruler.
  * (The VS Code API does not allow recolouring the line number text itself.)
  */
+/** Управляет наборами декораций редактора для всех поддерживаемых типов задач. */
 export class EditorHighlighter implements vscode.Disposable {
   private readonly types = new Map<TaskType, vscode.TextEditorDecorationType>();
   private readonly disposables: vscode.Disposable[] = [];
@@ -40,13 +49,15 @@ export class EditorHighlighter implements vscode.Disposable {
     this.refreshAll();
   }
 
-  refreshAll(): void {
+  /** Пересчитывает подсветку во всех видимых редакторах. */
+refreshAll(): void {
     for (const editor of vscode.window.visibleTextEditors) {
       this.update(editor);
     }
   }
 
-  private schedule(doc: vscode.TextDocument): void {
+  /** Откладывает обновление подсветки, объединяя частые события ввода в один пересчёт. */
+private schedule(doc: vscode.TextDocument): void {
     clearTimeout(this.timer);
     this.timer = setTimeout(() => {
       for (const editor of vscode.window.visibleTextEditors) {
@@ -57,7 +68,8 @@ export class EditorHighlighter implements vscode.Disposable {
     }, 200);
   }
 
-  private update(editor: vscode.TextEditor): void {
+  /** Анализирует документ редактора и устанавливает диапазоны подсветки по категориям. */
+private update(editor: vscode.TextEditor): void {
     const enabled = vscode.workspace.getConfiguration('tasktracker').get<boolean>('highlightInEditor', true);
     const doc = editor.document;
     const ranges = new Map<TaskType, vscode.Range[]>(ALL_TYPES.map((t) => [t, []]));
@@ -74,7 +86,8 @@ export class EditorHighlighter implements vscode.Disposable {
     }
   }
 
-  dispose(): void {
+  /** Останавливает таймер и освобождает обработчики событий и типы декораций. */
+dispose(): void {
     clearTimeout(this.timer);
     this.disposables.forEach((d) => d.dispose());
   }

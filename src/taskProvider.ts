@@ -1,3 +1,10 @@
+/**
+ * Адаптер между хранилищем TaskStore и Tree View API редактора VS Code.
+ *
+ * Компонент формирует видимый список задач, применяет фильтры и сортировку,
+ * создаёт элементы дерева и обновляет заголовок панели.
+ */
+
 import * as vscode from 'vscode';
 import { TaskStore } from './store';
 import { ALL_TYPES, SortMode, Task, TaskType, TYPE_ORDER } from './types';
@@ -15,6 +22,7 @@ const SORT_LABELS: Record<SortMode, string> = {
   line: 'номеру строки',
 };
 
+/** Предоставляет VS Code отфильтрованные и отсортированные задачи в виде элементов Tree View. */
 export class TaskProvider implements vscode.TreeDataProvider<Task> {
   private readonly emitter = new vscode.EventEmitter<void>();
   readonly onDidChangeTreeData = this.emitter.event;
@@ -28,7 +36,8 @@ export class TaskProvider implements vscode.TreeDataProvider<Task> {
     store.onDidChange(() => this.refresh());
   }
 
-  attach(view: vscode.TreeView<Task>): void {
+  /** Сохраняет ссылку на созданное представление для обновления его заголовка и описания. */
+attach(view: vscode.TreeView<Task>): void {
     this.view = view;
     this.updateHeader(this.visibleTasks().length);
   }
@@ -45,28 +54,33 @@ export class TaskProvider implements vscode.TreeDataProvider<Task> {
     return this.query;
   }
 
-  setTypes(types: TaskType[]): void {
+  /** Заменяет набор отображаемых типов задач и обновляет дерево. */
+setTypes(types: TaskType[]): void {
     this.filterTypes = new Set(types);
     this.refresh();
   }
 
-  setQuery(query: string): void {
+  /** Устанавливает поисковую строку; сравнение выполняется без учёта регистра. */
+setQuery(query: string): void {
     this.query = query.trim();
     this.refresh();
   }
 
-  setSort(mode: SortMode): void {
+  /** Выбирает режим сортировки списка задач. */
+setSort(mode: SortMode): void {
     this.sortMode = mode;
     this.refresh();
   }
 
-  clearFilters(): void {
+  /** Сбрасывает фильтр типов и поисковый запрос к значениям по умолчанию. */
+clearFilters(): void {
     this.filterTypes = new Set(ALL_TYPES);
     this.query = '';
     this.refresh();
   }
 
-  refresh(): void {
+  /** Уведомляет Tree View об изменениях и пересчитывает информацию в заголовке. */
+refresh(): void {
     this.emitter.fire();
     this.updateHeader(this.visibleTasks().length);
   }
@@ -89,7 +103,8 @@ export class TaskProvider implements vscode.TreeDataProvider<Task> {
     this.view.message = total === 0 ? 'Задачи не найдены.' : parts.join(' · ');
   }
 
-  private visibleTasks(): Task[] {
+  /** Формирует видимый список: применяет фильтр типов, текстовый поиск и сортировку. */
+private visibleTasks(): Task[] {
     const q = this.query.toLowerCase();
     const tasks = this.store.all.filter(
       (t) =>
@@ -99,7 +114,8 @@ export class TaskProvider implements vscode.TreeDataProvider<Task> {
     return tasks.sort(this.comparator());
   }
 
-  private comparator(): (a: Task, b: Task) => number {
+  /** Создаёт компаратор с дополнительными критериями для стабильного порядка элементов. */
+private comparator(): (a: Task, b: Task) => number {
     const byFile = (a: Task, b: Task) => a.relativePath.localeCompare(b.relativePath);
     const byType = (a: Task, b: Task) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type];
     const byLine = (a: Task, b: Task) => a.line - b.line;
@@ -122,11 +138,13 @@ export class TaskProvider implements vscode.TreeDataProvider<Task> {
     }
   }
 
-  getChildren(element?: Task): Task[] {
+  /** Возвращает корневые элементы дерева; отдельные задачи не имеют дочерних элементов. */
+getChildren(element?: Task): Task[] {
     return element ? [] : this.visibleTasks();
   }
 
-  getTreeItem(task: Task): vscode.TreeItem {
+  /** Преобразует задачу в TreeItem с иконкой, подсказкой и командой перехода к строке. */
+getTreeItem(task: Task): vscode.TreeItem {
     const item = new vscode.TreeItem(`${task.type}: ${task.text}`, vscode.TreeItemCollapsibleState.None);
     item.id = `${task.uri.toString()}#${task.line}#${task.type}`;
     item.description = `${task.relativePath}:${task.line}`;
