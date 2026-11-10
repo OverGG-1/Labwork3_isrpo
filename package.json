@@ -117,14 +117,22 @@
             "dist",
             "build",
             "target",
-            "bin",
-            "obj",
             "venv",
             ".venv",
             "__pycache__",
             "coverage"
           ],
-          "description": "Имена служебных каталогов, исключаемых из сканирования."
+          "description": "Имена служебных каталогов, исключаемых из сканирования. Файлы внутри них в список задач не попадают."
+        },
+        "tasktracker.excludedFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/README.md"
+          ],
+          "description": "Шаблоны файлов, исключаемых из сканирования и подсветки (поддерживаются *, ** и ?). Например: **/*.md или docs/**."
         },
         "tasktracker.maxFileSizeKb": {
           "type": "number",

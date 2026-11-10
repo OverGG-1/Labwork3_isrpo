@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isExcluded } from './exclusions';
 import { parseText } from './scanner';
 import { ALL_TYPES, TaskType } from './types';
 
@@ -61,7 +62,8 @@ export class EditorHighlighter implements vscode.Disposable {
     const doc = editor.document;
     const ranges = new Map<TaskType, vscode.Range[]>(ALL_TYPES.map((t) => [t, []]));
 
-    if (enabled && doc.lineCount <= MAX_LINES && (doc.uri.scheme === 'file' || doc.uri.scheme === 'untitled')) {
+    const supported = doc.uri.scheme === 'file' || doc.uri.scheme === 'untitled';
+    if (enabled && supported && doc.lineCount <= MAX_LINES && !isExcluded(doc.uri)) {
       for (const task of parseText(doc.getText(), doc.uri, '')) {
         const pos = new vscode.Position(task.line - 1, 0);
         ranges.get(task.type)!.push(new vscode.Range(pos, pos));

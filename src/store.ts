@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { isExcluded } from './exclusions';
 import { scanFile } from './scanner';
 import { Task } from './types';
 
@@ -30,15 +31,12 @@ export class TaskStore implements vscode.Disposable {
     return vscode.workspace.getConfiguration('tasktracker').get<number>('maxFileSizeKb', 1024);
   }
 
-  /** The file belongs to the workspace and is not inside an excluded service folder. */
+  /** The file belongs to the workspace and is not excluded by folder or file patterns. */
   isScannable(uri: vscode.Uri): boolean {
     if (uri.scheme !== 'file' || !vscode.workspace.getWorkspaceFolder(uri)) {
       return false;
     }
-    const excluded = new Set(this.excludedFolders);
-    const rel = vscode.workspace.asRelativePath(uri, false);
-    const dirs = rel.split(/[\\/]/).slice(0, -1);
-    return !dirs.some((d) => excluded.has(d));
+    return !isExcluded(uri);
   }
 
   async scanWorkspace(): Promise<void> {
@@ -54,7 +52,8 @@ export class TaskStore implements vscode.Disposable {
       async () => {
         const folders = this.excludedFolders;
         const exclude = folders.length > 0 ? `**/{${folders.join(',')}}/**` : undefined;
-        const files = await vscode.workspace.findFiles('**/*', exclude);
+        const found = await vscode.workspace.findFiles('**/*', exclude);
+        const files = found.filter((f) => !isExcluded(f));
 
         this.byFile.clear();
         let errors = 0;
