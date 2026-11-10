@@ -2,8 +2,8 @@ import * as vscode from 'vscode';
 import { Task, TaskType } from './types';
 
 /**
- * Keywords: upper-case anywhere ("TODO"), or lower/title-case only when followed
- * by a colon ("todo: ...", "Todo: ..."), to avoid matching ordinary words.
+ * Keywords: upper-case anywhere, or lower/title-case only when followed
+ * by a colon, to avoid matching ordinary words.
  */
 const KEYWORDS = 'TODO|FIXME|BUG|HACK|(?:todo|fixme|bug|hack|Todo|Fixme|Bug|Hack)(?=[ \\t]*:)';
 
