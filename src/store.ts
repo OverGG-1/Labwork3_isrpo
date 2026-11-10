@@ -4,7 +4,8 @@ import { Task } from './types';
 
 export class TaskStore implements vscode.Disposable {
   private readonly byFile = new Map<string, Task[]>();
-  private readonly emitter = new vscode.EventEmitter<void>();
+  /** Fires with the URIs of the files whose task lists have changed. */
+  private readonly emitter = new vscode.EventEmitter<vscode.Uri[]>();
   readonly onDidChange = this.emitter.event;
 
   constructor(private readonly log: vscode.OutputChannel) {}
@@ -17,6 +18,10 @@ export class TaskStore implements vscode.Disposable {
     return result;
   }
 
+  tasksFor(uri: vscode.Uri): Task[] {
+    return this.byFile.get(uri.toString()) ?? [];
+  }
+
   private get excludedFolders(): string[] {
     return vscode.workspace.getConfiguration('tasktracker').get<string[]>('excludedFolders', []);
   }
@@ -25,7 +30,7 @@ export class TaskStore implements vscode.Disposable {
     return vscode.workspace.getConfiguration('tasktracker').get<number>('maxFileSizeKb', 1024);
   }
 
-  /** Файл входит в рабочее пространство и не лежит в служебном каталоге. */
+  /** The file belongs to the workspace and is not inside an excluded service folder. */
   isScannable(uri: vscode.Uri): boolean {
     if (uri.scheme !== 'file' || !vscode.workspace.getWorkspaceFolder(uri)) {
       return false;
@@ -37,9 +42,11 @@ export class TaskStore implements vscode.Disposable {
   }
 
   async scanWorkspace(): Promise<void> {
+    const previous = [...this.byFile.keys()];
+
     if (!vscode.workspace.workspaceFolders) {
       this.byFile.clear();
-      this.emitter.fire();
+      this.emitter.fire(previous.map((k) => vscode.Uri.parse(k)));
       return;
     }
     await vscode.window.withProgress(
@@ -50,20 +57,34 @@ export class TaskStore implements vscode.Disposable {
         const files = await vscode.workspace.findFiles('**/*', exclude);
 
         this.byFile.clear();
+        let errors = 0;
+        let binary = 0;
+        let tooLarge = 0;
         const batchSize = 20;
         for (let i = 0; i < files.length; i += batchSize) {
           const batch = files.slice(i, i + batchSize);
           const results = await Promise.all(batch.map((f) => scanFile(f, this.maxFileSizeKb)));
           results.forEach((r, idx) => {
             if (r.error) {
-              this.log.appendLine(`[ошибка чтения] ${r.error}`);
+              errors++;
+              this.log.appendLine(`[read error] ${r.error}`);
+            }
+            if (r.skipped === 'binary') {
+              binary++;
+            } else if (r.skipped === 'size') {
+              tooLarge++;
             }
             if (r.tasks.length > 0) {
               this.byFile.set(batch[idx].toString(), r.tasks);
             }
           });
         }
-        this.emitter.fire();
+        this.log.appendLine(
+          `[scan] files found: ${files.length}, files with tasks: ${this.byFile.size}, ` +
+            `skipped as binary: ${binary}, too large: ${tooLarge}, read errors: ${errors}`
+        );
+        const keys = new Set<string>([...previous, ...this.byFile.keys()]);
+        this.emitter.fire([...keys].map((k) => vscode.Uri.parse(k)));
       }
     );
   }
@@ -74,22 +95,22 @@ export class TaskStore implements vscode.Disposable {
     }
     const result = await scanFile(uri, this.maxFileSizeKb);
     if (result.error) {
-      this.log.appendLine(`[ошибка чтения] ${result.error}`);
+      this.log.appendLine(`[read error] ${result.error}`);
     }
     const key = uri.toString();
     const had = this.byFile.has(key);
     if (result.tasks.length > 0) {
       this.byFile.set(key, result.tasks);
-      this.emitter.fire();
+      this.emitter.fire([uri]);
     } else if (had) {
       this.byFile.delete(key);
-      this.emitter.fire();
+      this.emitter.fire([uri]);
     }
   }
 
   removeFile(uri: vscode.Uri): void {
     if (this.byFile.delete(uri.toString())) {
-      this.emitter.fire();
+      this.emitter.fire([uri]);
     }
   }
 

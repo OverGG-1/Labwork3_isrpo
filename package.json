@@ -4,39 +4,98 @@
   "description": "Поиск и управление задачами TODO, FIXME, BUG и HACK из комментариев в коде",
   "version": "1.0.0",
   "publisher": "local",
-  "engines": { "vscode": "^1.80.0" },
-  "categories": ["Other"],
-  "activationEvents": ["onStartupFinished"],
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
-        { "id": "tasktracker", "title": "TaskTracker", "icon": "resources/icon.svg" }
+        {
+          "id": "tasktracker",
+          "title": "TaskTracker",
+          "icon": "resources/icon.svg"
+        }
       ]
     },
     "views": {
       "tasktracker": [
-        { "id": "tasktracker.tasks", "name": "Задачи" }
+        {
+          "id": "tasktracker.tasks",
+          "name": "Задачи"
+        }
       ]
     },
     "commands": [
-      { "command": "tasktracker.refresh", "title": "TaskTracker: Обновить список", "icon": "$(refresh)" },
-      { "command": "tasktracker.filterByType", "title": "TaskTracker: Фильтр по типу", "icon": "$(filter)" },
-      { "command": "tasktracker.sortBy", "title": "TaskTracker: Сортировка", "icon": "$(sort-precedence)" },
-      { "command": "tasktracker.search", "title": "TaskTracker: Поиск по тексту", "icon": "$(search)" },
-      { "command": "tasktracker.clearFilters", "title": "TaskTracker: Сбросить фильтры", "icon": "$(clear-all)" },
-      { "command": "tasktracker.openTask", "title": "TaskTracker: Перейти к задаче" }
+      {
+        "command": "tasktracker.refresh",
+        "title": "TaskTracker: Обновить список",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "tasktracker.filterByType",
+        "title": "TaskTracker: Фильтр по типу",
+        "icon": "$(filter)"
+      },
+      {
+        "command": "tasktracker.sortBy",
+        "title": "TaskTracker: Сортировка",
+        "icon": "$(sort-precedence)"
+      },
+      {
+        "command": "tasktracker.search",
+        "title": "TaskTracker: Поиск по тексту",
+        "icon": "$(search)"
+      },
+      {
+        "command": "tasktracker.clearFilters",
+        "title": "TaskTracker: Сбросить фильтры",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "tasktracker.openTask",
+        "title": "TaskTracker: Перейти к задаче"
+      }
     ],
     "menus": {
       "view/title": [
-        { "command": "tasktracker.search", "when": "view == tasktracker.tasks", "group": "navigation@1" },
-        { "command": "tasktracker.filterByType", "when": "view == tasktracker.tasks", "group": "navigation@2" },
-        { "command": "tasktracker.sortBy", "when": "view == tasktracker.tasks", "group": "navigation@3" },
-        { "command": "tasktracker.clearFilters", "when": "view == tasktracker.tasks", "group": "navigation@4" },
-        { "command": "tasktracker.refresh", "when": "view == tasktracker.tasks", "group": "navigation@5" }
+        {
+          "command": "tasktracker.search",
+          "when": "view == tasktracker.tasks",
+          "group": "navigation@1"
+        },
+        {
+          "command": "tasktracker.filterByType",
+          "when": "view == tasktracker.tasks",
+          "group": "navigation@2"
+        },
+        {
+          "command": "tasktracker.sortBy",
+          "when": "view == tasktracker.tasks",
+          "group": "navigation@3"
+        },
+        {
+          "command": "tasktracker.clearFilters",
+          "when": "view == tasktracker.tasks",
+          "group": "navigation@4"
+        },
+        {
+          "command": "tasktracker.refresh",
+          "when": "view == tasktracker.tasks",
+          "group": "navigation@5"
+        }
       ],
       "commandPalette": [
-        { "command": "tasktracker.openTask", "when": "false" }
+        {
+          "command": "tasktracker.openTask",
+          "when": "false"
+        }
       ]
     },
     "configuration": {
@@ -44,17 +103,128 @@
       "properties": {
         "tasktracker.excludedFolders": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["node_modules", ".git", ".svn", ".hg", ".vscode", ".idea", "out", "dist", "build", "target", "bin", "obj", "venv", ".venv", "__pycache__", "coverage"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "node_modules",
+            ".git",
+            ".svn",
+            ".hg",
+            ".vscode",
+            ".idea",
+            "out",
+            "dist",
+            "build",
+            "target",
+            "bin",
+            "obj",
+            "venv",
+            ".venv",
+            "__pycache__",
+            "coverage"
+          ],
           "description": "Имена служебных каталогов, исключаемых из сканирования."
         },
         "tasktracker.maxFileSizeKb": {
           "type": "number",
           "default": 1024,
           "description": "Файлы больше этого размера (в КБ) пропускаются."
+        },
+        "tasktracker.decorateExplorer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a badge and colour on files with tasks in the Explorer."
+        },
+        "tasktracker.highlightInEditor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight lines with tasks in the editor (gutter icon, line background, overview ruler)."
         }
       }
-    }
+    },
+    "colors": [
+      {
+        "id": "tasktracker.bugForeground",
+        "description": "Colour of BUG tasks (Explorer, overview ruler).",
+        "defaults": {
+          "dark": "#f14c4c",
+          "light": "#cd3131",
+          "highContrast": "#f14c4c",
+          "highContrastLight": "#cd3131"
+        }
+      },
+      {
+        "id": "tasktracker.bugBackground",
+        "description": "Line background for BUG tasks in the editor.",
+        "defaults": {
+          "dark": "#f14c4c26",
+          "light": "#cd31311f",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "tasktracker.fixmeForeground",
+        "description": "Colour of FIXME tasks (Explorer, overview ruler).",
+        "defaults": {
+          "dark": "#e8912d",
+          "light": "#c26a00",
+          "highContrast": "#e8912d",
+          "highContrastLight": "#c26a00"
+        }
+      },
+      {
+        "id": "tasktracker.fixmeBackground",
+        "description": "Line background for FIXME tasks in the editor.",
+        "defaults": {
+          "dark": "#e8912d26",
+          "light": "#c26a001f",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "tasktracker.hackForeground",
+        "description": "Colour of HACK tasks (Explorer, overview ruler).",
+        "defaults": {
+          "dark": "#cca700",
+          "light": "#946f00",
+          "highContrast": "#cca700",
+          "highContrastLight": "#946f00"
+        }
+      },
+      {
+        "id": "tasktracker.hackBackground",
+        "description": "Line background for HACK tasks in the editor.",
+        "defaults": {
+          "dark": "#cca70026",
+          "light": "#946f001f",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      },
+      {
+        "id": "tasktracker.todoForeground",
+        "description": "Colour of TODO tasks (Explorer, overview ruler).",
+        "defaults": {
+          "dark": "#3794ff",
+          "light": "#0066bf",
+          "highContrast": "#3794ff",
+          "highContrastLight": "#0066bf"
+        }
+      },
+      {
+        "id": "tasktracker.todoBackground",
+        "description": "Line background for TODO tasks in the editor.",
+        "defaults": {
+          "dark": "#3794ff26",
+          "light": "#0066bf1f",
+          "highContrast": "#00000000",
+          "highContrastLight": "#00000000"
+        }
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p ./",

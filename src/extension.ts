@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { TaskStore } from './store';
 import { TaskProvider } from './taskProvider';
 import { ALL_TYPES, SortMode, Task, TaskType } from './types';
+import { TaskFileDecorationProvider } from './fileDecorations';
+import { EditorHighlighter } from './editorHighlight';
 
 export function activate(context: vscode.ExtensionContext): void {
   const log = vscode.window.createOutputChannel('TaskTracker');
@@ -14,11 +16,17 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   provider.attach(view);
 
-  // --- Команды ---------------------------------------------------------
+  const fileDecorations = new TaskFileDecorationProvider(store);
+  const highlighter = new EditorHighlighter(context);
+
+  // --- Commands --------------------------------------------------------
   context.subscriptions.push(
     log,
     store,
     view,
+    fileDecorations,
+    highlighter,
+    vscode.window.registerFileDecorationProvider(fileDecorations),
 
     vscode.commands.registerCommand('tasktracker.refresh', () => store.scanWorkspace()),
 
@@ -80,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand('tasktracker.clearFilters', () => provider.clearFilters())
   );
 
-  // --- Автоматическое обновление --------------------------------------
+  // --- Automatic refresh -----------------------------------------------
   const timers = new Map<string, NodeJS.Timeout>();
   const schedule = (uri: vscode.Uri): void => {
     if (uri.scheme !== 'file') {
@@ -107,6 +115,8 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.workspace.onDidChangeWorkspaceFolders(() => store.scanWorkspace()),
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('tasktracker')) {
+        highlighter.refreshAll();
+        fileDecorations.refreshAll();
         void store.scanWorkspace();
       }
     }),
