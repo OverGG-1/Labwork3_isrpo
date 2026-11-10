@@ -4,9 +4,6 @@ node_modules/
 # compile result
 out/
 
-# buildede packages
-*.vsix
-
 # logs
 npm-debug.log*
 *.log
