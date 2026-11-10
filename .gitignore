@@ -1,19 +1,19 @@
-# зависимости
+# dependensies
 node_modules/
 
-# результат компиляции
+# compile result
 out/
 
-# собранные пакеты расширения
+# buildede packages
 *.vsix
 
-# логи
+# logs
 npm-debug.log*
 *.log
 
-# системные файлы
+# system files
 .DS_Store
 Thumbs.db
 
-# настройки редакторов
+# settings
 .idea/
