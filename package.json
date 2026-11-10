@@ -1,0 +1,70 @@
+{
+  "name": "tasktracker",
+  "displayName": "TaskTracker",
+  "description": "Поиск и управление задачами TODO, FIXME, BUG и HACK из комментариев в коде",
+  "version": "1.0.0",
+  "publisher": "local",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Other"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        { "id": "tasktracker", "title": "TaskTracker", "icon": "resources/icon.svg" }
+      ]
+    },
+    "views": {
+      "tasktracker": [
+        { "id": "tasktracker.tasks", "name": "Задачи" }
+      ]
+    },
+    "commands": [
+      { "command": "tasktracker.refresh", "title": "TaskTracker: Обновить список", "icon": "$(refresh)" },
+      { "command": "tasktracker.filterByType", "title": "TaskTracker: Фильтр по типу", "icon": "$(filter)" },
+      { "command": "tasktracker.sortBy", "title": "TaskTracker: Сортировка", "icon": "$(sort-precedence)" },
+      { "command": "tasktracker.search", "title": "TaskTracker: Поиск по тексту", "icon": "$(search)" },
+      { "command": "tasktracker.clearFilters", "title": "TaskTracker: Сбросить фильтры", "icon": "$(clear-all)" },
+      { "command": "tasktracker.openTask", "title": "TaskTracker: Перейти к задаче" }
+    ],
+    "menus": {
+      "view/title": [
+        { "command": "tasktracker.search", "when": "view == tasktracker.tasks", "group": "navigation@1" },
+        { "command": "tasktracker.filterByType", "when": "view == tasktracker.tasks", "group": "navigation@2" },
+        { "command": "tasktracker.sortBy", "when": "view == tasktracker.tasks", "group": "navigation@3" },
+        { "command": "tasktracker.clearFilters", "when": "view == tasktracker.tasks", "group": "navigation@4" },
+        { "command": "tasktracker.refresh", "when": "view == tasktracker.tasks", "group": "navigation@5" }
+      ],
+      "commandPalette": [
+        { "command": "tasktracker.openTask", "when": "false" }
+      ]
+    },
+    "configuration": {
+      "title": "TaskTracker",
+      "properties": {
+        "tasktracker.excludedFolders": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["node_modules", ".git", ".svn", ".hg", ".vscode", ".idea", "out", "dist", "build", "target", "bin", "obj", "venv", ".venv", "__pycache__", "coverage"],
+          "description": "Имена служебных каталогов, исключаемых из сканирования."
+        },
+        "tasktracker.maxFileSizeKb": {
+          "type": "number",
+          "default": 1024,
+          "description": "Файлы больше этого размера (в КБ) пропускаются."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.4.0"
+  }
+}
