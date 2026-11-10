@@ -2,7 +2,7 @@
  * Highlights tasks in open editor documents.
  *
  * Adds a gutter icon,
- * a line background and an overview ruler marker for TODO/FIXME/BUG/HACK entries. Only visible
+ * a line background and an overview ruler marker entries. Only visible
  * documents are analyzed, and document size is limited by line count.
  */
 

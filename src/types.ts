@@ -22,7 +22,7 @@ export type SortMode = 'file' | 'type' | 'line';
 
 /**
  * A task detected in the project.
- * @property type TODO/FIXME/BUG/HACK marker type.
+ * @property type marker type.
  * @property text Text following the marker.
  * @property uri URI of the source file.
  * @property relativePath Workspace-relative file path.
